@@ -1,0 +1,4 @@
+adafruit-circuitpython-mcp3xxx
+gpiozero
+influxdb
+paho-mqtt==1.6.1
