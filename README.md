@@ -9,7 +9,7 @@ We define 3 transducer_types, although we only actually have 2...
 2. basic water level transducer_type located at the bottom of a tank, hung from the top = 1 (0 - 5 bar)
 3. basic transducer measuring water line pressure, screwed into the outboung pipine after pump = 2 (0 - 10 bar)
 
-The values are messured via pressure transducers => List Ali Express links
+The values are messured via pressure transducers => List Ali Express links below.
 
 My tanks are 4750L tanks that stand 2.5M heigh as such I'm using a 0-0.5 Bar sensor, 5V input and 3.3 V output sensor for water level/volume.
 
@@ -28,6 +28,19 @@ See below links.
 See images folder for diagrams how to wire things up...
 
 As this is the only app that will be running on the pi... I install the python libraries as root... using the following command.
+
+See ha/* for the configuration of Home Assistant. included is the configuration.yaml file showing the various sensors created, additionally I split out the templates section into template.yaml and then the code to draw the dashboard is in dashboard.yaml.
+
+The images used are in TanLevels, including the draw.io file that can be edited via https://draw.io.
+
+## Sensors Used
+
+AliExpress
+
+[Drop in, 5M Depth, 10m Cable, 5V input, 0-3.3V output on request](https://www.aliexpress.com/item/1005007554736988.html?gps-id=pcStoreJustForYou&scm=1007.23125.137358.0&scm_id=1007.23125.137358.0&scm-url=1007.23125.137358.0&pvid=e9c26f05-90b0-4a60-a8cb-a0cd988eb2b6&_t=gps-id:pcStoreJustForYou,scm-url:1007.23125.137358.0,pvid:e9c26f05-90b0-4a60-a8cb-a0cd988eb2b6,tpp_buckets:668%232846%238111%231996&pdp_npi=4%40dis%21ZAR%21865.47%21562.55%21%21%21320.00%21208.00%21%40211b655217366877176413963efafe%2112000041275802308%21rec%21ZA%21132265470%21X&spm=a2g0o.store_pc_home.smartJustForYou_2009878566292.1005007554736988)
+
+[Screw In, 5M Depth, 0.5Bar, 5V input, 0-3.3V output, on request](https://www.aliexpress.com/item/1005006258321416.html?pdp_npi=4%40dis%21ZAR%21ZAR%20743.76%21ZAR%20498.32%21%21%21275.00%21184.25%21%40210390c517366876957038616d519c%2112000036500164948%21sh01%21ZA%21132265470%21X&spm=a2g0o.store_pc_home.productList_2006375488799.1005006258321416)
+
 
 
 ## Deploying...
