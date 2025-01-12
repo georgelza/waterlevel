@@ -40,7 +40,8 @@ def get_config_params(configfile, descriptor=""):
     # end for
 
 
-    params['common']['loglevel']            = int(params['common']['loglevel'])
+    params['common']['console_loglevel']    = int(params['common']['console_loglevel'])
+    params['common']['file_loglevel']       = int(params['common']['file_loglevel'])
     params['common']['logfile']             = params['common']['logfile'].lower()
     params["common"]["channels"]            = params["common"]["channels"].split(",")
 
@@ -61,13 +62,15 @@ def get_config_params(configfile, descriptor=""):
         params[chan]['max_pressure']       = int(params[chan]['max_pressure'])
         params[chan]["sensor_raw_value"]   = int(params[chan]["sensor_raw_max"])
         params[chan]["sensor_raw_value"]   = int(params[chan]["sensor_raw_value"])
-        params[chan]["measurement"]        = params[chan]["measurement"]
+        params[chan]["database"]           = params[chan]["database"]
         params[chan]["tag"]                = params[chan]["tag"]
         params[chan]["base_topic"]         = params[chan]["base_topic"]        
-        params[chan]['loglevel']           = int(params[chan]['loglevel'])
         params[chan]['logfile']            = params[chan]['logfile'].lower()
+        params[chan]['console_loglevel']   = int(params[chan]['console_loglevel'])
+        params[chan]['file_loglevel']      = int(params[chan]['file_loglevel'])
+        params[chan]['adjust_value']       = int(params[chan]['adjust_value'])
 
-    for x in range(7):        
+    for x in range(8):        
         if str(x) in params["common"]["channels"]:
             chan = "chan" + str(x)
             params[chan]["channel"]              = int(params[chan]["channel"])
@@ -77,11 +80,12 @@ def get_config_params(configfile, descriptor=""):
             params[chan]["sleep_seconds"]        = int(params[chan]["sleep_seconds"])
             params[chan]["sensor_raw_max"]       = int(params[chan]["sensor_raw_max"])
             params[chan]["water_height_max_cm"]  = int(params[chan]["water_height_max_cm"])
-            params[chan]["measurement"]          = params[chan]["measurement"]
+            params[chan]["database"]             = params[chan]["database"]
             params[chan]["tag"]                  = params[chan]["tag"]
             params[chan]["base_topic"]           = params[chan]["base_topic"]
-            params[chan]['loglevel']             = int(params[chan]['loglevel'])
             params[chan]['logfile']              = params[chan]['logfile'].lower()
+            params[chan]['console_loglevel']     = int(params[chan]['console_loglevel'])
+            params[chan]['file_loglevel']        = int(params[chan]['file_loglevel'])
             params[chan]['adjust_value']         = int(params[chan]['adjust_value'])
         
 
@@ -96,6 +100,106 @@ def get_config_params(configfile, descriptor=""):
     return params
 
 # end def 
+
+
+"""
+Common Generic Logger setup, used by master loop for console and common file.
+"""
+def advance_logger(filename, console_level = 1, file_level = 1):
+
+
+    my_logger = logging.getLogger(__name__)
+    my_logger.setLevel(logging.INFO)
+
+    # Create a formatter
+    #cf = logging.Formatter('%(asctime)s - %(levelname)s - %(processName)s - %(message)s')
+    cf = logging.Formatter('%(levelname)s - %(processName)s - %(message)s')
+    ch = logging.StreamHandler()
+    
+    # Set file log level 
+    if console_level == 0:
+        ch.setLevel(logging.DEBUG)
+        cl = "debug"
+
+    elif console_level == 1:
+        ch.setLevel(logging.INFO)
+        cl = "info"
+        
+    elif console_level == 2:
+        ch.setLevel(logging.WARNING)
+        cl = "warning"
+        
+    elif console_level == 3:
+        ch.setLevel(logging.ERROR)
+        cl = "error"
+      
+    elif console_level == 4:
+        ch.setLevel(logging.CRITICAL)
+        cl = "critical"
+        
+    else:
+        ch.setLevel(logging.INFO)  # Default log level if undefined
+        cl = "info"
+
+    # Create a formatter
+    #ff = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    ff = logging.Formatter('%(levelname)s - %(message)s')
+    fh = logging.FileHandler(filename)
+
+    # Set file log level 
+    if file_level == 0:
+        fh.setLevel(logging.DEBUG)
+        fl = "debug"
+        
+    elif file_level == 1:
+        fh.setLevel(logging.INFO)
+        fl = "info"
+        
+    elif file_level == 2:
+        fh.setLevel(logging.WARNING)
+        fl = "warning"
+        
+    elif file_level == 3:
+        fh.setLevel(logging.ERROR)
+        fl = "error"
+        
+    elif file_level == 4:
+        fh.setLevel(logging.CRITICAL)
+        fl = "critical"
+        
+    else:
+        fh.setLevel(logging.INFO)  # Default log level if undefined
+        fl = "info"
+
+
+    ch.setFormatter(cf)
+    my_logger.addHandler(ch)
+    
+    fh.setFormatter(ff)
+    my_logger.addHandler(fh)
+    
+    return my_logger, cl, fl
+
+# end advance_logger
+
+
+
+# Console print
+def pp_json(json_thing, logger, sort=True, indents=4):
+    
+    #print(json.dumps(json_thing, sort_keys=sort, indent=indents))
+
+    if type(json_thing) is str:
+        logger.debug(json.dumps(json.loads(json_thing), sort_keys=sort, indent=indents))
+
+    else:
+        logger.debug(json.dumps(json_thing, sort_keys=sort, indent=indents))
+
+    return None
+
+# end pp_json
+
+
 
 def basic_logger(filename, loglevel):
 
@@ -139,18 +243,3 @@ def basic_logger(filename, loglevel):
     return my_logger
 
 # end b_logger
-
-
-# Console print
-def pp_json(json_thing, logger, sort=True, indents=4):
-    
-
-    if type(json_thing) is str:
-        logger.debug(json.dumps(json.loads(json_thing), sort_keys=sort, indent=indents))
-
-    else:
-        logger.debug(json.dumps(json_thing, sort_keys=sort, indent=indents))
-
-    return None
-
-# end pp_json

@@ -1,0 +1,28 @@
+
+
+
+    
+mqtt:
+
+  # https://developers.home-assistant.io/docs/core/entity/sensor
+
+  sensor:
+    # old Rasperry Pi and Ultrasonic setup
+  - state_topic: "home/WaterTankLevels/CouncilWaterTank1/json"
+    name: "Council 1 - Percent"
+    unit_of_measurement: '%'
+    value_template:  "{{ value_json.fields.fill_percentage }}"
+    
+  - state_topic: "home/WaterTankLevels/CouncilWaterTank1/json"
+    name: "Council 1 - Litre"
+    unit_of_measurement: 'L'
+    value_template: "{{ value_json.fields.water_volume }}"
+    
+  - state_topic: "home/WaterTankLevels/CouncilWaterTank1/json"
+    name: "Council 1- Cm"
+    unit_of_measurement: 'cm'
+    value_template: "{{ value_json.fields.water_level }}"
+
+  - state_topic: "home/WaterTankLevels/CouncilWaterTank1/json"
+    name: "Council 1- Last Update"
+    value_template:  "{{ value_json.time }}"

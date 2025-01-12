@@ -1,0 +1,20 @@
+
+
+type: vertical-stack
+cards:
+  - show_state: false
+    show_name: false
+    camera_view: auto
+    entity: image.council_1_tank_level
+    name: Tank Level
+    type: picture-entity
+  - type: entities
+    entities:
+      - entity: sensor.council_1_litre
+        name: Volume
+      - entity: sensor.council_1_cm
+        name: Water Level (Cm)
+      - entity: sensor.council_1_percent
+        name: Fill Percentage
+      - entity: sensor.council_1_last_update
+        name: Last Reading

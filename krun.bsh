@@ -1,0 +1,6 @@
+#!/bin/bash
+
+export CONFIGFILE=/app/waterlevels/ken_config.cfg
+
+
+python3 /app/waterlevels/level.py

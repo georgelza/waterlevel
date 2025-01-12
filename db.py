@@ -25,32 +25,27 @@ import sys
 
 
 ############# Instantiate a connection to the InfluxDB ##################
-def connect(config_params, my_logger):
+def connect(config_params, logger):
 
     host     = config_params['influxdb']['host']
     port     = config_params['influxdb']['port']
     
-    my_logger.info("")
-    my_logger.info("#####################################################################")
-    my_logger.info("")
+    logger.info("")
+    logger.info("#####################################################################")
+    logger.info("")
 
-    my_logger.info('{time}, db.connect - Creating connection to InfluxDB... '.format(
+    logger.info('{time}, db.connect - Creating connection to InfluxDB... '.format(
         time    = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
     ))
 
-    my_logger.info('{time}, db.connect - Host     : {host} '.format(
+    logger.info('{time}, db.connect - Host     : {host} '.format(
         time    = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
         host    = config_params['influxdb']['host']
     ))
 
-    my_logger.info('{time}, db.connect - Port     : {port}'.format(
+    logger.info('{time}, db.connect - Port     : {port}'.format(
         time    = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
         port    = config_params['influxdb']['port']
-    ))
-
-    my_logger.info('{time}, db.connect - Database : {database} '.format(
-        time     = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-        database = config_params['influxdb']['dbname']
     ))
 
     try:
@@ -58,26 +53,26 @@ def connect(config_params, my_logger):
         client = InfluxDBClient(host = host, port = port)
 
     except Exception as err:
-        my_logger.critical('{time}, db.connect - Connection to InfluxDB Failed... {err}'.format(
+        logger.critical('{time}, db.connect - Connection to InfluxDB Failed... {err}'.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
             err  = err
         ))
 
-        my_logger.critical("")
-        my_logger.critical("#####################################################################")
-        my_logger.critical("")
+        logger.critical("")
+        logger.critical("#####################################################################")
+        logger.critical("")
 
         sys.exit(-1)
         
     finally:
     
-        my_logger.info('{time}, db.connect - Connection to InfluxDB Succeeded... '.format(
+        logger.info('{time}, db.connect - Connection to InfluxDB Succeeded... '.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
         ))
 
-        my_logger.info("")
-        my_logger.info("#####################################################################")
-        my_logger.info("")
+        logger.info("")
+        logger.info("#####################################################################")
+        logger.info("")
 
     # end try
         
@@ -87,24 +82,26 @@ def connect(config_params, my_logger):
 #end influx_connect
 
 
-def insert(client, json_data, main_logger):
+def insert(client, json_data, logger):
 
     try:
 
-        response = client.write_points(points=json_data)
+        response = client.write_points(points = json_data)
 
     except Exception as err:
-        main_logger.error('{time}, db.insert - Write Failed !!!: {err}'.format(
+        logger.error('{time}, db.insert - Write Failed !!!: {err}'.format(
             time   = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
             err    = err
         ))
     
     finally:
     
-        main_logger.info("{time}, db.insert - InfluxDB Write operation: {response}".format(
+        logger.info("{time}, db.insert - InfluxDB Write operation: {response}".format(
             time     = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
             response = response,
         ))       
 
+        return response
+    
     # end try    
 #end influx_insert

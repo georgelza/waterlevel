@@ -1,0 +1,12 @@
+scp adc.py pi@172.16.20.232:/app/waterlevels/
+scp apputils.py pi@172.16.20.232:/app/waterlevels/
+scp db.py pi@172.16.20.232:/app/waterlevels/
+scp level.py pi@172.16.20.232:/app/waterlevels/
+scp measure.py pi@172.16.20.232:/app/waterlevels/
+scp mqtt.py pi@172.16.20.232:/app/waterlevels/
+scp kpush.bsh pi@172.16.20.232:/app/waterlevels/
+scp krun.bsh pi@172.16.20.232:/app/waterlevels/
+scp requirements pi@172.16.20.232:/app/waterlevels/
+scp README.md pi@172.16.20.232:/app/waterlevels/
+scp k/* pi@172.16.20.232:/app/waterlevels/
+

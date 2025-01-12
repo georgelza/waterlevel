@@ -1,0 +1,12 @@
+[Unit]
+Description=My Watertank Service (Levels and Pressures)
+After=multi-user.target
+
+[Service]
+Type=idle
+User=root
+Group=root
+ExecStart=/app/waterlevels/run.bsh > 2>&1 > /app/waterlevels/waterservice.log
+
+[Install]
+WantedBy=multi-user.target

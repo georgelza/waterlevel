@@ -1,0 +1,91 @@
+
+
+    
+template:
+  - image: 
+      - name: Council 1 Tank Level
+        url: >
+          {% set input_value = states('sensor.council_1_percent') | float %}
+          {% if 0 < input_value < 2.5 %}
+            http://172.16.10.21:8123/local/TankLevels0000.jpg
+          {% elif 2.5 <= input_value < 5 %}
+            http://172.16.10.21:8123/local/TankLevels0025.jpg
+          {% elif 5 <= input_value < 7.5 %}
+            http://172.16.10.21:8123/local/TankLevels0050.jpg
+          {% elif 7.5 <= input_value < 10 %}
+            http://172.16.10.21:8123/local/TankLevels0075.jpg
+          {% elif 10 <= input_value < 12.5 %}
+            http://172.16.10.21:8123/local/TankLevels0100.jpg
+          {% elif 12.5 <= input_value < 15 %}
+            http://172.16.10.21:8123/local/TankLevels0125.jpg
+          {% elif 15 <= input_value < 17.5 %}
+            http://172.16.10.21:8123/local/TankLevels0150.jpg
+          {% elif 17.5 <= input_value < 20 %}
+            http://172.16.10.21:8123/local/TankLevels0175.jpg
+          {% elif 20 <= input_value < 22.5 %}
+            http://172.16.10.21:8123/local/TankLevels0200.jpg
+          {% elif 22.5 <= input_value < 25 %}
+            http://172.16.10.21:8123/local/TankLevels0225.jpg
+          {% elif 25 <= input_value < 27.5 %}
+            http://172.16.10.21:8123/local/TankLevels0250.jpg
+          {% elif 27.5 <= input_value < 30 %}
+            http://172.16.10.21:8123/local/TankLevels0275.jpg
+          {% elif 30 <= input_value < 32.5 %}
+            http://172.16.10.21:8123/local/TankLevels0300.jpg
+          {% elif 32.5 <= input_value < 35 %}
+            http://172.16.10.21:8123/local/TankLevels0325.jpg
+          {% elif 35 <= input_value < 37.5 %}
+            http://172.16.10.21:8123/local/TankLevels0350.jpg
+          {% elif 37.5 <= input_value < 40 %}
+            http://172.16.10.21:8123/local/TankLevels0375.jpg
+          {% elif 40 <= input_value < 42.5 %}
+            http://172.16.10.21:8123/local/TankLevels0400.jpg
+          {% elif 42.5 <= input_value < 45 %}
+            http://172.16.10.21:8123/local/TankLevels0425.jpg
+          {% elif 45 <= input_value < 47.5 %}
+            http://172.16.10.21:8123/local/TankLevels0450.jpg
+          {% elif 47.5 <= input_value < 50 %}
+            http://172.16.10.21:8123/local/TankLevels0475.jpg
+          {% elif 50 <= input_value < 52.5 %}
+            http://172.16.10.21:8123/local/TankLevels0500.jpg
+          {% elif 52.5 <= input_value < 55 %}
+            http://172.16.10.21:8123/local/TankLevels0525.jpg
+          {% elif 55 <= input_value < 57.5 %}
+            http://172.16.10.21:8123/local/TankLevels0550.jpg
+          {% elif 57.5 <= input_value < 60 %}
+            http://172.16.10.21:8123/local/TankLevels0575.jpg
+          {% elif 60 <= input_value < 62.5 %}
+            http://172.16.10.21:8123/local/TankLevels0600.jpg
+          {% elif 62.5 <= input_value < 65 %}
+            http://172.16.10.21:8123/local/TankLevels0625.jpg
+          {% elif 65 <= input_value < 67.5 %}
+            http://172.16.10.21:8123/local/TankLevels0650.jpg
+          {% elif 67.5 <= input_value < 70 %}
+            http://172.16.10.21:8123/local/TankLevels0675.jpg
+          {% elif 70 <= input_value < 72.5 %}
+            http://172.16.10.21:8123/local/TankLevels0700.jpg
+          {% elif 72.5 <= input_value < 75 %}
+            http://172.16.10.21:8123/local/TankLevels0725.jpg
+          {% elif 75 <= input_value < 77.5 %}
+            http://172.16.10.21:8123/local/TankLevels0750.jpg
+          {% elif 77.5 <= input_value < 80 %}
+            http://172.16.10.21:8123/local/TankLevels0775.jpg
+          {% elif 80 <= input_value < 82.5 %}
+            http://172.16.10.21:8123/local/TankLevels0800.jpg
+          {% elif 82.5 <= input_value < 85 %}
+            http://172.16.10.21:8123/local/TankLevels0825.jpg
+          {% elif 85 <= input_value < 87.5 %}
+            http://172.16.10.21:8123/local/TankLevels0850.jpg
+          {% elif 87.5 <= input_value < 90 %}
+            http://172.16.10.21:8123/local/TankLevels0875.jpg
+          {% elif 90 <= input_value < 92.5 %}
+            http://172.16.10.21:8123/local/TankLevels0900.jpg
+          {% elif 92.5 <= input_value < 95 %}
+            http://172.16.10.21:8123/local/TankLevels0925.jpg
+          {% elif 95 <= input_value < 97.5 %}
+            http://172.16.10.21:8123/local/TankLevels0950.jpg
+          {% elif 97.5 <= input_value <= 100 %}
+            http://172.16.10.21:8123/local/TankLevels0975.jpg
+          {% else %}
+            http://172.16.10.21:8123/local/TankLevels1000.jpg
+          {% endif %}

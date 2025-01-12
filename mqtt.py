@@ -26,42 +26,36 @@ from datetime import datetime
 
 
 ############# Instantiate a connection to the MQTT Server ##################
-def connect(config_params, main_logger):
+def connect(config_params, logger):
 
     # Configure the Mqtt connection etc.
     broker      = config_params["mqtt"]["broker"]
     port        = config_params["mqtt"]["port"]
-    clienttag   = config_params["mqtt"]["clienttag"]
     username    = config_params["mqtt"]["username"]
     password    = config_params["mqtt"]["password"]
-    base_topic  = config_params['mqtt']['base_topic']
+    clienttag   = config_params["sensor"]["mqttclienttag"]
 
-    main_logger.info("")
-    main_logger.info("#####################################################################")
-    main_logger.info("")
+    logger.info("")
+    logger.info("#####################################################################")
+    logger.info("")
     
-    main_logger.info('{time}, mqtt.connect - Creating connection to MQTT... '.format(
+    logger.info('{time}, mqtt.connect - Creating connection to MQTT... '.format(
         time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
     ))
 
-    main_logger.info('{time}, mqtt.connect - Broker     : {broker} '.format(
+    logger.info('{time}, mqtt.connect - Broker     : {broker} '.format(
         time   = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
         broker = broker
     ))
 
-    main_logger.info('{time}, mqtt.connect - Port       : {port}'.format(
+    logger.info('{time}, mqtt.connect - Port       : {port}'.format(
         time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
         port = port
     ))
 
-    main_logger.info('{time}, mqtt.connect - Client Tag : {clienttag} '.format(
+    logger.info('{time}, mqtt.connect - Client Tag : {clienttag} '.format(
         time      = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
         clienttag = clienttag
-    ))
-
-    main_logger.info('{time}, mqtt.connect - Base Topic : {base_topic} '.format(
-        time=str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-        base_topic = base_topic
     ))
         
 
@@ -79,31 +73,31 @@ def connect(config_params, main_logger):
 
 
     except Exception as err:
-        main_logger.critical("{time}, mqtt.connect - Connection to MQTT Failed... {broker}, Port: {port}, Err: {err}".format(
+        logger.critical("{time}, mqtt.connect - Connection to MQTT Failed... {broker}, Port: {port}, Err: {err}".format(
             time   = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
             broker = broker,
             port   = port,
             err    = err
         ))
 
-        main_logger.critical("")
-        main_logger.critical("#####################################################################")
-        main_logger.critical("")
+        logger.critical("")
+        logger.critical("#####################################################################")
+        logger.critical("")
 
         GPIO.cleanup()
         sys.exit(1)
     
     finally:
         
-        main_logger.info("{time}, mqtt.connect - Connected to to MQTT Broker: {broker}, Port: {port}".format(
+        logger.info("{time}, mqtt.connect - Connected to to MQTT Broker: {broker}, Port: {port}".format(
             time   = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
             broker = broker,
             port   = port
         ))
 
-        main_logger.info("")
-        main_logger.info("#####################################################################")
-        main_logger.info("")
+        logger.info("")
+        logger.info("#####################################################################")
+        logger.info("")
         
     # end try
     
@@ -119,20 +113,20 @@ def on_disconnect(client, userdata, flags, rc=0):
 #end on_disconnect
 
 
-def publish(client, json_data, topic, main_logger):
+def publish(client, json_data, base_topic, logger):
 
     try:
 
-        ret = client.publish(topic, json_data, 0)           # QoS = 0
+        ret = client.publish(base_topic, json_data, 0)           # QoS = 0
 
     except Exception as err:
-        main_logger.critical('{time}, mqtt.publish - Publish Failed !!!: {err}'.format(
+        logger.critical('{time}, mqtt.publish - Publish Failed !!!: {err}'.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
             err  = err
         ))
     
     finally:
-        main_logger.info("{time}, mqtt.publish - MQTT Publish returned: {ret}".format(
+        logger.info("{time}, mqtt.publish - MQTT Publish returned: {ret}".format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
             ret  = ret
         ))    
@@ -141,14 +135,14 @@ def publish(client, json_data, topic, main_logger):
 #end publish
 
 
-def close(client, main_logger):
+def close(client, logger):
 
     try:
 
         client.disconnect()
         
     except Exception as err:
-        main_logger.critical('{time}, mqtt.close - Connection Close to MQTT Failed... {err}'.format(
+        logger.critical('{time}, mqtt.close - Connection Close to MQTT Failed... {err}'.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
             err  = err
         ))
@@ -156,7 +150,7 @@ def close(client, main_logger):
         sys.exit(-1)
 
     finally:    
-        main_logger.info('{time},  mqtt.close - Connection to MQTT Closed... '.format(
+        logger.info('{time},  mqtt.close - Connection to MQTT Closed... '.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
         ))
         

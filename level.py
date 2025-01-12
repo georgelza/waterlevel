@@ -53,113 +53,64 @@ from apputils import *
 
 def main_initiator(config_params):
 
+    logfile            = config_params["common"]["logfile"]
+    console_loglevel   = config_params["common"]["console_loglevel"]
+    file_loglevel      = config_params["common"]["file_loglevel"]
 
     # Create new Main Process specific logger's
-    main_logger = basic_logger(config_params["common"]["logfile"], config_params["common"]["loglevel"])
+    # main_logger = basic_logger(logfile, loglevel)
+    logger, fl, cl = advance_logger(logfile, console_loglevel, file_loglevel)
     
-    main_logger.debug("{time}, level.main_initiator - Entered main_initiator: ".format(
-        time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-    ))
-
-    main_logger.info("")
-    main_logger.info('{time}, level.main_initiator - Starting... '.format(
+    logger.info("")
+    logger.info('{time}, level.main_initiator - Starting... '.format(
         time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
     ))
     
-        
-    if config_params["common"]["loglevel"] < 3:
+    logger.info("{time}, measure.main_initiator - logfile: {logfile}, File Level: {fl}, Console Level: {cl}".format(
+        time        = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
+        logfile     = logfile,
+        fl          = fl,
+        cl          = cl
+    ))
+    
+  
+    if console_loglevel < 3:
 
-        main_logger.info(' ')
-        main_logger.info(' ####################################### ')
-        main_logger.info(' #                                     # ')
-        main_logger.info(' #          Water Tank Levels          # ')
-        main_logger.info(' #         And Booster Pressure        # ')
-        main_logger.info(' #                                     # ')
-        main_logger.info(' #          by: George Leonard         # ')
-        main_logger.info(' #          georgelza@gmail.com        # ')
-        main_logger.info(' #                                     # ')
-        main_logger.info(' #       {time}    # '.format(
+        logger.info(' ')
+        logger.info(' ####################################### ')
+        logger.info(' #                                     # ')
+        logger.info(' #          Water Tank Levels          # ')
+        logger.info(' #         & Booster Pressure          # ')
+        logger.info(' #                                     # ')
+        logger.info(' #          by: George Leonard         # ')
+        logger.info(' #          georgelza@gmail.com        # ')
+        logger.info(' #                                     # ')
+        logger.info(' #       {time}    # '.format(
             time=str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
         ))
-        main_logger.info(' #                                     # ')
-        main_logger.info(' ####################################### ')
-        main_logger.info(' ')
+        logger.info(' #                                     # ')
+        logger.info(' ####################################### ')
+        logger.info(' ')
         
-        pp_json(config_params, main_logger)
-
-    
-    
-    # Initialize InfluxDB Connection
-    if config_params["influxdb"]["enabled"] == 1:
-        try:
-
-            influx_client = db.connect(config_params, main_logger)
-            
-        except Exception as err:
-
-            main_logger.critical('{time}, Something went wrong (InfluxDB Connection)) / Error... {err}'.format(
-                time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-                err  = err
-            ))
-            
-            os.exit(1)
-                    
-        # end try
-    else:
-        main_logger.debug('{time}, InfluxDB Disabled... '.format(
-            time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-        ))
-        influx_client = None
-    
-    # end if
-    
-    
-    # Initialize MQTT Broker Connection
-    if config_params["mqtt"]["enabled"] == 1:
-        try:
-
-            mqtt_client = mqtt.connect(config_params, main_logger)
-            
-        except Exception as err:
-
-            main_logger.critical('{time}, Something went wrong (MQTT Connection) / Error... {err}'.format(
-                time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-                err  = err
-            ))
-
-            main_logger.critical('{time}, MQTT Disconnect... '.format(
-                time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-            ))
-            
-            os.exit(1)
-
-        # end try
-    else:
-        main_logger.debug('{time}, MQTT Disabled... '.format(
-            time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-        ))
-        mqtt_client = None
-            
-    # end if
-    
+        pp_json(config_params, logger)
+   
     
     # Initialize MCP3008
     try:
                 
-        mcp = adc.initialize(main_logger)
+        mcp = adc.initialize(logger)
         
     except Exception as err:
 
-        main_logger.critical('{time}, Something went wrong (ADC Configure) / Error... {err}'.format(
+        logger.critical('{time}, Something went wrong (ADC Configure) / Error... {err}'.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
             err  = err
         ))
         
-        mqtt.close(mqtt_client, main_logger)
-        os.exit(1)
+        sys.exit(1)
         
     finally:
-        main_logger.debug('{time}, ADC Enabled... '.format(
+        logger.debug('{time}, ADC Enabled... '.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
         ))
         
@@ -182,34 +133,34 @@ def main_initiator(config_params):
         if "0" in config["common"]["channels"]:
             
             chanlbl          = "chan0"
-            chan             = adc.createChan(mcp, 0, main_logger)
+            chan0            = adc.createChan(mcp, 0, logger)
             config["sensor"] = config_params[chanlbl]
 
-            main_logger.debug("{time}, Adding {chanLabel} Process: ".format(
+            logger.debug("{time}, Adding {chanLabel} Process: ".format(
                 time      = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
                 chanLabel = chanlbl 
             ))
 
             # Create a process for each site
-            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan, config, mqtt_client, influx_client))
-            p.start()
+            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan0, config))
             processes.append(p)
+            p.start()
     
         # end id
         
         if "1" in config["common"]["channels"]:
             
             chanlbl          = "chan1"
-            chan             = adc.createChan(mcp, 1, main_logger)
+            chan1            = adc.createChan(mcp, 1, logger)
             config["sensor"] = config_params[chanlbl]
 
-            main_logger.debug("{time}, Adding {chanLabel} Process: ".format(
+            logger.debug("{time}, Adding {chanLabel} Process: ".format(
                 time      = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
                 chanLabel = chanlbl 
             ))
 
             # Create a process for each site
-            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan, config, mqtt_client, influx_client))
+            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan1, config))
             p.start()
             processes.append(p)
     
@@ -218,16 +169,16 @@ def main_initiator(config_params):
         if "2" in config["common"]["channels"]:
             
             chanlbl          = "chan2"
-            chan             = adc.createChan(mcp, 2, main_logger)
+            chan2            = adc.createChan(mcp, 2, logger)
             config["sensor"] = config_params[chanlbl]
 
-            main_logger.debug("{time}, Adding {chanLabel} Process: ".format(
+            logger.debug("{time}, Adding {chanLabel} Process: ".format(
                 time      = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
                 chanLabel = chanlbl 
             ))
 
             # Create a process for each site
-            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan, config, mqtt_client, influx_client))
+            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan2, config))
             p.start()
             processes.append(p)
     
@@ -236,16 +187,16 @@ def main_initiator(config_params):
         if "3" in config["common"]["channels"]:
             
             chanlbl          = "chan3"
-            chan             = adc.createChan(mcp, 3, main_logger)
+            chan3            = adc.createChan(mcp, 3, logger)
             config["sensor"] = config_params[chanlbl]
 
-            main_logger.debug("{time}, Adding {chanLabel} Process: ".format(
+            logger.debug("{time}, Adding {chanLabel} Process: ".format(
                 time      = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
                 chanLabel = chanlbl 
             ))
 
             # Create a process for each site
-            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan, config, mqtt_client, influx_client))
+            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan3, config))
             p.start()
             processes.append(p)
     
@@ -254,16 +205,16 @@ def main_initiator(config_params):
         if "4" in config["common"]["channels"]:
             
             chanlbl          = "chan4"
-            chan             = adc.createChan(mcp, 4, main_logger)
+            chan4            = adc.createChan(mcp, 4, logger)
             config["sensor"] = config_params[chanlbl]
 
-            main_logger.debug("{time}, Adding {chanLabel} Process: ".format(
+            logger.debug("{time}, Adding {chanLabel} Process: ".format(
                 time      = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
                 chanLabel = chanlbl 
             ))
 
             # Create a process for each site
-            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan, config, mqtt_client, influx_client))
+            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan4, config))
             p.start()
             processes.append(p)
     
@@ -272,16 +223,16 @@ def main_initiator(config_params):
         if "5" in config["common"]["channels"]:
             
             chanlbl          = "chan5"
-            chan             = adc.createChan(mcp, 5, main_logger)
+            chan5            = adc.createChan(mcp, 5, logger)
             config["sensor"] = config_params[chanlbl]
 
-            main_logger.debug("{time}, Adding {chanLabel} Process: ".format(
+            logger.debug("{time}, Adding {chanLabel} Process: ".format(
                 time      = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
                 chanLabel = chanlbl 
             ))
 
             # Create a process for each site
-            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan, config, mqtt_client, influx_client))
+            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan5, config))
             p.start()
             processes.append(p)
     
@@ -290,16 +241,16 @@ def main_initiator(config_params):
         if "6" in config["common"]["channels"]:
             
             chanlbl          = "chan6"
-            chan             = adc.createChan(mcp, 6, main_logger)
+            chan6            = adc.createChan(mcp, 6, logger)
             config["sensor"] = config_params[chanlbl]
 
-            main_logger.debug("{time}, Adding {chanLabel} Process: ".format(
+            logger.debug("{time}, Adding {chanLabel} Process: ".format(
                 time      = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
                 chanLabel = chanlbl 
             ))
 
             # Create a process for each site
-            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan, config, mqtt_client, influx_client))
+            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan6, config))
             p.start()
             processes.append(p)
     
@@ -308,16 +259,16 @@ def main_initiator(config_params):
         if "7" in config["common"]["channels"]:
             
             chanlbl          = "chan7"
-            chan             = adc.createChan(mcp, 7, main_logger)
+            chan7            = adc.createChan(mcp, 7, logger)
             config["sensor"] = config_params[chanlbl]
 
-            main_logger.debug("{time}, Adding {chanLabel} Process: ".format(
+            logger.debug("{time}, Adding {chanLabel} Process: ".format(
                 time      = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
                 chanLabel = chanlbl 
             ))
 
             # Create a process for each site
-            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan, config, mqtt_client, influx_client))
+            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan7, config))
             p.start()
             processes.append(p)
     
@@ -328,41 +279,41 @@ def main_initiator(config_params):
             chanlbl = "booster"
             
             if config[chanlbl]["channel"] == 0:
-                chan = adc.createChan(mcp, 0, main_logger)
+                chanbooster = adc.createChan(mcp, 0, logger)
                 
             elif config[chanlbl]["channel"] == 1:
-                chan = adc.createChan(mcp, 1, main_logger)
+                chanbooster = adc.createChan(mcp, 1, logger)
                 
             elif config[chanlbl]["channel"] == 2:
-                chan = adc.createChan(mcp, 2, main_logger)
+                chanbooster = adc.createChan(mcp, 2, logger)
                 
             elif config[chanlbl]["channel"] == 3:
-                chan = adc.createChan(mcp, 3, main_logger)
+                chanbooster = adc.createChan(mcp, 3, logger)
                 
             elif config[chanlbl]["channel"] == 4:
-                chan = adc.createChan(mcp, 4, main_logger)
+                chanbooster = adc.createChan(mcp, 4, logger)
                 
             elif config[chanlbl]["channel"] == 5:
-                chan = adc.createChan(mcp, 5, main_logger)
+                chanbooster = adc.createChan(mcp, 5, logger)
                 
             elif config[chanlbl]["channel"] == 6:
-                chan = adc.createChan(mcp, 6, main_logger)
+                chanbooster = adc.createChan(mcp, 6, logger)
                 
             elif config[chanlbl]["channel"] == 7:
-                chan = adc.createChan(mcp, 7, main_logger)
+                chanbooster = adc.createChan(mcp, 7, logger)
                 
             # end if                 
 
             config["sensor"] = config_params["booster"]
 
 
-            main_logger.debug("{time}, Adding {chanLabel} Process: ".format(
+            logger.debug("{time}, Adding {chanLabel} Process: ".format(
                 time      = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
                 chanLabel = chanlbl 
             ))
 
             # Create a process for each site
-            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chan, config, mqtt_client, influx_client))
+            p = multiprocessing.Process(target=measure.chan_reader, name=chanlbl, args=(chanbooster, config))
             p.start()          
             processes.append(p)
               
@@ -377,7 +328,7 @@ def main_initiator(config_params):
     
     except Exception as err:
 
-        main_logger.critical('{time}, Something went wrong / Error... {err}'.format(
+        logger.critical('{time}, Something went wrong / Error... {err}'.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
             err  = err
         ))
@@ -385,30 +336,28 @@ def main_initiator(config_params):
     except KeyboardInterrupt:
         # Reset by pressing CTRL + C
 
-        main_logger.info('{time}, Reset by pressing CTRL + C...'.format(
+        logger.info('{time}, Reset by pressing CTRL + C...'.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
         ))
 
     finally:
 
-        main_logger.info("KeyboardInterrupt detected! Terminating all processes...")
-        main_logger.info("")
+        logger.info("KeyboardInterrupt detected! Terminating all processes...")
+        logger.info("")
         
         # Terminate all running processes if Ctrl+C is pressed
         for p in processes:
             p.terminate()
             p.join()
 
-        main_logger.info("All processes terminated. Exiting gracefully...")
+        logger.info("All processes terminated. Exiting gracefully...")
         
-        main_logger.info('{time}, Closing MQTT Connection... '.format(
+        logger.info('{time}, Closing MQTT Connection... '.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
         ))
         
-        if mqtt_client != None:
-            mqtt_client.disconnect(config_params, main_logger)
             
-        main_logger.info('{time}, Goodbye... '.format(
+        logger.info('{time}, Goodbye... '.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
         ))
 
