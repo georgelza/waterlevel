@@ -33,7 +33,7 @@ def connect(config_params, logger):
     port        = config_params["mqtt"]["port"]
     username    = config_params["mqtt"]["username"]
     password    = config_params["mqtt"]["password"]
-    clienttag   = config_params["sensor"]["mqttclienttag"]
+    clienttag   = config_params["sensor"]["mqtt_clienttag"]
 
     logger.info("")
     logger.info("#####################################################################")

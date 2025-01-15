@@ -18,13 +18,15 @@
 #                   :   CREATE DATABASE watertak_levels
 #                   :   CREATE USER waterlevel WITH PASSWORD 'password' WITH ALL PRIVILEGES
 #
-#                   :   cp waterlevels_and_pressure.service /lib/systemd/system
+#                   :    cp gwaterservice.service /lib/systemd/system
 #
 #                   :    sudo systemctl enable waterlevels_and_pressure.service
 #                   :    sudo systemctl start waterlevels_and_pressure.service
 #                   :    sudo systemctl status waterlevels_and_pressure.service
 #
 #                   :    sudo systemctl daemon-reload
+#
+#                   :   * * * * * /app/waterlevels/run.bsh >> /app/waterlevels/WaterTanks.log
 #
 #######################################################################################################################
 __author__      = "George Leonard"

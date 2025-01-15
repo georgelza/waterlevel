@@ -20,7 +20,7 @@ __copyright__   = "Copyright 2024, George Leonard"
 
 #Libraries
 from datetime import datetime
-import time, json, sys
+import time, json, sys, statistics
 import db
 import mqtt
 from apputils import * 
@@ -54,16 +54,16 @@ def calculate_type0(sensor_reading, config_params, logger):
         water_height_cm = 0          
           
     # end if
-    
-    
+        
     if water_height_cm < 0: 
         water_height_cm = 0
-    
+
+    # end if
 
     # make pretty
-    water_height_cm = round(water_height_cm, 2)
-    percentage      = round((water_height_cm / tank_height_cm) * 100, 2)
-    watervolume     = round(tank_capacity_l * percentage / 100, 2)
+    water_height_cm = round(water_height_cm,0 )
+    percentage      = round((water_height_cm / tank_height_cm) * 100, 0)
+    watervolume     = round(tank_capacity_l * percentage / 100, 0)
             
 
     logger.debug("{time}, measure.calculate_type0 - Exiting: ch:{channel}, {water_height_cm} cm, {percentage} %, {watervolume} L".format(
@@ -83,9 +83,9 @@ def calculate_type0(sensor_reading, config_params, logger):
 # Measure boospressure
 def boostpressure(sensor_reading, config_params, logger):
     
-    max_pressure        = config_params["common"]["max_pressure"]             # BAR
-    sensor_raw_max      = config_params["common"]["sensor_raw_max"]                # Max raw value to be read
-    sensor_raw_min      = config_params["common"]["sensor_raw_min"]                # Min raw value when empty
+    max_pressure        = config_params["common"]["max_pressure"]                   # BAR
+    sensor_raw_max      = config_params["common"]["sensor_raw_max"]                 # Max raw value to be read
+    sensor_raw_min      = config_params["common"]["sensor_raw_min"]                 # Min raw value when empty
     pos_value           = sensor_raw_max - sensor_raw_min
     channel             = config_params["sensor"]["channel"]
 
@@ -109,7 +109,6 @@ def boostpressure(sensor_reading, config_params, logger):
         pressureBar = 0
         pressurePsi = 0
          
-
     # end if
     
   
@@ -125,6 +124,62 @@ def boostpressure(sensor_reading, config_params, logger):
 # end boostpressure
 
 
+def median_readings(chan, config_params, logger):
+
+    samples                 = config_params["sensor"]["samples"]
+    max_samples             = config_params["sensor"]["max_samples"]
+    samples_sleep_seconds   = config_params["sensor"]["sample_sleep_seconds"]
+
+    logger.info("{time}, measure.median_readings - Entering: ".format(
+        time=str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
+    ))
+
+    tValueAr   = []
+    tVoltageAr = []
+    i          = 0            # current valie reading
+    maxLoop    = 0            # max loops to tru
+    tBreak     = False        # did we exit because we hit maxLoop
+    while i < samples:
+        
+        chanValue      = chan.value
+        channelVoltage = chan.voltage
+        
+        if chanValue > 0 and channelVoltage > 0:
+            tValueAr.append(chanValue)
+            tVoltageAr.append(channelVoltage)
+            i = i + 1
+            
+            logger.info("{time}, measure.median_readings {maxLoop} {i} - Value: {chanValue}, Voltage: {channelVoltage}".format(
+                time  = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
+                maxLoop        = maxLoop,
+                i              = i,
+                chanValue      = chanValue,
+                channelVoltage = channelVoltage,
+            ))
+            
+        maxLoop = maxLoop + 1
+        time.sleep(samples_sleep_seconds)
+        if maxLoop == max_samples:
+            tBreak = True
+            break
+
+        # end if
+    # end while
+
+    tValue   = statistics.median(tValueAr)
+    tVoltage = statistics.median(tVoltageAr)
+
+    logger.info("{time}, measure.median_readings - Exiting - Max Samples: {tBreak}, Value: {tValue}, Voltage: {tVoltage}".format(
+        time     = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
+        tBreak   = tBreak,
+        tValue   = tValue,
+        tVoltage = tVoltage,
+    ))
+
+    return round(tValue, 6), round(tVoltage, 6)
+
+#end median_readings
+
 
 def chan_reader(chan, config_params):
     
@@ -137,13 +192,14 @@ def chan_reader(chan, config_params):
     transducer_type  = config_params["sensor"]["transducer_type"]
     base_topic       = config_params["sensor"]["base_topic"]
     database         = config_params["sensor"]["database"]
+    influxdb_enabled = config_params["sensor"]["influxdb_enabled"]
+    mqtt_enabled     = config_params["sensor"]["mqtt_enabled"]
     
     # Create new Channel Process specific logger's
-    # chan_logger = basic_logger(logfile, loglevel)
     logger, fl, cl = advance_logger(logfile, console_loglevel, file_loglevel)
     
     logger.info("")
-    logger.info('{time}, measure.chan_reader - Starting... Ch: {channel},'.format(
+    logger.info('{time}, measure.chan_reader - Initializing Ch: {channel},'.format(
         time    = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
         channel = channel
     ))
@@ -159,14 +215,14 @@ def chan_reader(chan, config_params):
     logger.info("")
 
 
-    if config_params["influxdb"]["enabled"] == 1:
+    if influxdb_enabled == 1:
         try:
 
             influx_client = db.connect(config_params, logger)
             
         except Exception as err:
 
-            logger.critical('{time}, Something went wrong (InfluxDB Connection)) / Error... {err}'.format(
+            logger.critical('{time}, measure.chan_reader - Something went wrong (InfluxDB Connection)) / Error... {err}'.format(
                 time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
                 err  = err
             ))
@@ -175,7 +231,7 @@ def chan_reader(chan, config_params):
                     
         # end try
     else:
-        logger.debug('{time}, InfluxDB Disabled... '.format(
+        logger.debug('{time}, measure.chan_reader - InfluxDB Disabled... '.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
         ))
         influx_client = None
@@ -184,19 +240,19 @@ def chan_reader(chan, config_params):
     
     
     # Initialize MQTT Broker Connection
-    if config_params["mqtt"]["enabled"] == 1:
+    if mqtt_enabled == 1:
         try:
 
             mqtt_client = mqtt.connect(config_params, logger)
             
         except Exception as err:
 
-            logger.critical('{time}, Something went wrong (MQTT Connection) / Error... {err}'.format(
+            logger.critical('{time}, measure.chan_reader - Something went wrong (MQTT Connection) / Error... {err}'.format(
                 time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
                 err  = err
             ))
 
-            logger.critical('{time}, MQTT Disconnect... '.format(
+            logger.critical('{time}, measure.chan_reader - MQTT Disconnect... '.format(
                 time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
             ))
             
@@ -204,7 +260,7 @@ def chan_reader(chan, config_params):
 
         # end try
     else:
-        logger.debug('{time}, MQTT Disabled... '.format(
+        logger.debug('{time}, measure.chan_reader - MQTT Disabled... '.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
         ))
         mqtt_client = None
@@ -214,102 +270,111 @@ def chan_reader(chan, config_params):
 
     while True:
         
+        logger.info('{time}, measure.chan_reader - Starting Loop Ch: {channel},'.format(
+            time    = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
+            channel = channel
+        ))
+        
+        
         tTimestamp  = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime(time.time()))       # timestamp for Influx, down to the second
 
-        # Raw Measurements
-        tValue      = round(chan.value, 6)
-        tVoltage    = round(chan.voltage, 6)       
-
-
-        if transducer_type == 0:
             
-            tWaterLevel, tPercentage, tVolume = calculate_type0(tValue, config_params, logger)
-            
-            json_data = {
-                "measurement" : database,           # select from "< >""
-                "tags": {                           # where tank = "< >"
-                    "tank": tag
-                },
-                "time" : tTimestamp,
-                "fields": {
-                    "water_level":      tWaterLevel,        # cm of water in tank
-                    "fill_percentage":  tPercentage,        # based on distance and tank depth, percentage full
-                    "water_volume":     tVolume,            # based on percentage and tank capacity
-                    "voltage":          tVoltage,           # Actual Measured voltage
-                    "value":            tValue,             # Actual Measured value
+        tValue, tVoltage = median_readings(chan, config_params, logger)
+        
+        if tValue > 0 and tVoltage > 0:
+            if transducer_type == 0:
+                
+                tWaterLevel, tPercentage, tVolume = calculate_type0(tValue, config_params, logger)
+                
+                json_data = {
+                    "measurement" : database,                   # select from "< >""
+                    "tags": {                                   # where tank = "< >"
+                        "tank": tag
+                    },
+                    "time" : tTimestamp,
+                    "fields": {
+                        "water_level":      tWaterLevel,        # cm of water in tank
+                        "fill_percentage":  tPercentage,        # based on distance and tank depth, percentage full
+                        "water_volume":     tVolume,            # based on percentage and tank capacity
+                        "value":            int(tValue),        # Actual Measured value    => int
+                        "voltage":          tVoltage,           # Actual Measured voltage  => float
+                    }
                 }
-            }
-            
-            logger.info('{time}, measure.chan_reader - ch: {ch}, tp: {tp}, Tag: {tag}, Level: {waterLevel} cm, Fill: {percentage}%, Volume: {volume} L, Voltage {voltage}, Value: {value}'.format(
-                time            = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-                ch              = channel,
-                tp              = transducer_type,                
-                tag             = tag,
-                waterLevel      = tWaterLevel,
-                percentage      = tPercentage,
-                volume          = tVolume,
-                voltage         = tVoltage,        
-                value           = tValue             
-            ))           
-            
-            
-        # Bottom screw in, the json package send to mqtt and inserted into the database has a different structure.
-        elif transducer_type == 1:
-            
-            tPressureBar, tPressurePsi = boostpressure(tValue, config_params, logger)                                # how many cm of water do we have                                           
+                
+                logger.info('{time}, measure.chan_reader - ch: {ch}, tp: {tp}, Tag: {tag}, Level: {waterLevel} cm, Fill: {percentage}%, Volume: {volume} L, Voltage {voltage}, Value: {value}'.format(
+                    time            = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
+                    ch              = channel,
+                    tp              = transducer_type,                
+                    tag             = tag,
+                    waterLevel      = tWaterLevel,
+                    percentage      = tPercentage,
+                    volume          = tVolume,
+                    value           = int(tValue),             
+                    voltage         = tVoltage
+                ))           
+                
+                
+            # Bottom screw in, the json package send to mqtt and inserted into the database has a different structure.
+            elif transducer_type == 1:
+                
+                tPressureBar, tPressurePsi = boostpressure(tValue, config_params, logger)                                # how many cm of water do we have                                           
 
-            json_data = {
-                "measurement" : database,           # select from "< >""
-                "tags": {                           # where tank = "< >"
-                    "pump": tag
-                },
-                "time" : tTimestamp,
-                "fields": {
-                    "pressureBAR":  tPressureBar,       # Boost Pressure in BAR
-                    "pressurePsi":  tPressurePsi,       # Boost Pressure in Psi
-                    "voltage":      tVoltage,           # Actual Measured voltage
-                    "value":        tValue,             # Actual Measured value
+                json_data = {
+                    "measurement" : database,           # select from "< >""
+                    "tags": {                           # where tank = "< >"
+                        "pump": tag
+                    },
+                    "time" : tTimestamp,
+                    "fields": {
+                        "pressureBAR":  tPressureBar,       # Boost Pressure in BAR
+                        "pressurePsi":  tPressurePsi,       # Boost Pressure in Psi
+                        "value":        int(tValue),        # Actual Measured value
+                        "voltage":      tVoltage,           # Actual Measured voltage
+                    }
                 }
-            }
+                
+                logger.info('{time}, measure.chan_reader - ch: {ch}, tp: {tp}, Tag: {tag}, Bar: {pressureBAR}, Psi: {pressurePsi}, Voltage: {voltage}, Value: {value}'.format(
+                    time            = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
+                    ch              = channel,                
+                    tp              = transducer_type,
+                    tag             = tag,
+                    pressureBAR     = tPressureBar,         # BAR
+                    pressurePsi     = tPressurePsi,         # Psi / Pounds per Square Inch
+                    value           = int(tValue),          # value  
+                    voltage         = tVoltage              # voltage
+                ))  
+            # end if
             
-            logger.info('{time}, measure.chan_reader - ch: {ch}, tp: {tp}, Tag: {tag}, Bar: {pressureBAR}, Psi: {pressurePsi}, Voltage: {voltage}, Value: {value}'.format(
-                time            = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-                ch              = channel,                
-                tp              = transducer_type,
-                tag             = tag,
-                pressureBAR     = tPressureBar,         # BAR
-                pressurePsi     = tPressurePsi,         # Psi / Pounds per Square Inch
-                voltage         = tVoltage,             # voltage
-                value           = tValue                # value
-            ))  
-        # end if
-        
-        
-        # Insert InfluxDB
-        if influx_client != None:
             
-            influx_client.switch_database(database = database)
+            # Insert InfluxDB
+            if influxdb_enabled == 1:
+                
+                influx_client.switch_database(database = database)
+            
+                db.insert(influx_client, [json_data], logger)
         
-            ########################################################################
-            # Insert into InfluxDB Database
-            response = db.insert(influx_client, [json_data], logger)
-    
-        # end if
+            # end if
 
 
-        # Publish MQTT
-        if mqtt_client != None:
-            
-            ########################################################################
             # Publish MQTT
-            mqtt.publish(mqtt_client, json.dumps(json_data), base_topic + "/json", logger)
+            if mqtt_enabled == 1:
+                
+                mqtt.publish(mqtt_client, json.dumps(json_data), base_topic + "/json", logger)
 
-        # end if    
-        
-        pp_json(json_data, logger)
-        
-        print("")            
-        time.sleep(sleep_seconds)
-        
+            # end if    
+            
+            pp_json(json_data, logger)
+
+            logger.info('{time}, measure.chan_reader - Completed Loop Ch: {channel},'.format(
+                time    = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
+                channel = channel
+            ))
+                        
+            logger.info('')         
+            logger.info('')         
+
+            time.sleep(sleep_seconds)
+
+        # end if tValue > 0 and tVoltage > 0
     # end while True
 # end chan_reader

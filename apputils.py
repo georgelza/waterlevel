@@ -56,46 +56,50 @@ def get_config_params(configfile, descriptor=""):
     
     if params['common']['booster'] == "1":
         chan = "booster"
-        params[chan]["channel"]            = int(params[chan]['channel'])
-        params[chan]["transducer_type"]    = int(params[chan]["transducer_type"])
-        params[chan]["sleep_seconds"]      = int(params[chan]["sleep_seconds"])
-        params[chan]['max_pressure']       = int(params[chan]['max_pressure'])
-        params[chan]["sensor_raw_value"]   = int(params[chan]["sensor_raw_max"])
-        params[chan]["sensor_raw_value"]   = int(params[chan]["sensor_raw_value"])
-        params[chan]["database"]           = params[chan]["database"]
-        params[chan]["tag"]                = params[chan]["tag"]
-        params[chan]["base_topic"]         = params[chan]["base_topic"]        
-        params[chan]['logfile']            = params[chan]['logfile'].lower()
-        params[chan]['console_loglevel']   = int(params[chan]['console_loglevel'])
-        params[chan]['file_loglevel']      = int(params[chan]['file_loglevel'])
-        params[chan]['adjust_value']       = int(params[chan]['adjust_value'])
+        params[chan]["channel"]                 = int(params[chan]['channel'])
+        params[chan]["transducer_type"]         = int(params[chan]["transducer_type"])
+        params[chan]["sleep_seconds"]           = int(params[chan]["sleep_seconds"])
+        params[chan]['max_pressure']            = int(params[chan]['max_pressure'])
+        params[chan]["sensor_raw_value"]        = int(params[chan]["sensor_raw_max"])
+        params[chan]["sensor_raw_value"]        = int(params[chan]["sensor_raw_value"])
+        # params[chan]["database"]                = params[chan]["database"]
+        # params[chan]["tag"]                     = params[chan]["tag"]
+        # params[chan]["base_topic"]              = params[chan]["base_topic"]        
+        params[chan]['logfile']                 = params[chan]['logfile'].lower()
+        params[chan]['console_loglevel']        = int(params[chan]['console_loglevel'])
+        params[chan]['file_loglevel']           = int(params[chan]['file_loglevel'])
+        params[chan]['adjust_value']            = int(params[chan]['adjust_value'])
+        params[chan]['samples']                 = int(params[chan]['samples'])
+        params[chan]['max_samples']             = int(params[chan]['max_samples'])
+        params[chan]['sample_sleep_seconds']    = int(params[chan]['sample_sleep_seconds'])
+        params[chan]['mqtt_enabled']            = int(params[chan]['mqtt_enabled'])
+        params[chan]['influxdb_enabled']        = int(params[chan]['influxdb_enabled'])
 
     for x in range(8):        
         if str(x) in params["common"]["channels"]:
             chan = "chan" + str(x)
-            params[chan]["channel"]              = int(params[chan]["channel"])
-            params[chan]["transducer_type"]      = int(params[chan]["transducer_type"])
-            params[chan]["tank_height_cm"]       = int(params[chan]["tank_height_cm"])
-            params[chan]["tank_capacity_l"]      = int(params[chan]["tank_capacity_l"])
-            params[chan]["sleep_seconds"]        = int(params[chan]["sleep_seconds"])
-            params[chan]["sensor_raw_max"]       = int(params[chan]["sensor_raw_max"])
-            params[chan]["water_height_max_cm"]  = int(params[chan]["water_height_max_cm"])
-            params[chan]["database"]             = params[chan]["database"]
-            params[chan]["tag"]                  = params[chan]["tag"]
-            params[chan]["base_topic"]           = params[chan]["base_topic"]
-            params[chan]['logfile']              = params[chan]['logfile'].lower()
-            params[chan]['console_loglevel']     = int(params[chan]['console_loglevel'])
-            params[chan]['file_loglevel']        = int(params[chan]['file_loglevel'])
-            params[chan]['adjust_value']         = int(params[chan]['adjust_value'])
-        
-
-    params['influxdb']['enabled']               = int(params['influxdb']['enabled'])
-    if params['influxdb']['enabled'] == 1:
-        params['influxdb']['port']              = int(params['influxdb']['port'])
-    
-    params["mqtt"]["enabled"]                   = int(params["mqtt"]["enabled"])   
-    if params["mqtt"]["enabled"] == 1:
-        params["mqtt"]["port"]                  = int(params["mqtt"]["port"])   
+            params[chan]["channel"]                 = int(params[chan]["channel"])
+            params[chan]["transducer_type"]         = int(params[chan]["transducer_type"])
+            params[chan]["tank_height_cm"]          = int(params[chan]["tank_height_cm"])
+            params[chan]["tank_capacity_l"]         = int(params[chan]["tank_capacity_l"])
+            params[chan]["sleep_seconds"]           = int(params[chan]["sleep_seconds"])
+            params[chan]["sensor_raw_max"]          = int(params[chan]["sensor_raw_max"])
+            params[chan]["water_height_max_cm"]     = int(params[chan]["water_height_max_cm"])
+            # params[chan]["database"]                = params[chan]["database"]
+            # params[chan]["tag"]                     = params[chan]["tag"]
+            # params[chan]["base_topic"]              = params[chan]["base_topic"]
+            params[chan]['logfile']                 = params[chan]['logfile'].lower()
+            params[chan]['console_loglevel']        = int(params[chan]['console_loglevel'])
+            params[chan]['file_loglevel']           = int(params[chan]['file_loglevel'])
+            params[chan]['adjust_value']            = int(params[chan]['adjust_value'])
+            params[chan]['samples']                 = int(params[chan]['samples'])
+            params[chan]['max_samples']             = int(params[chan]['max_samples'])
+            params[chan]['sample_sleep_seconds']    = int(params[chan]['sample_sleep_seconds'])
+            params[chan]['mqtt_enabled']            = int(params[chan]['mqtt_enabled'])
+            params[chan]['influxdb_enabled']        = int(params[chan]['influxdb_enabled'])
+            
+    params['influxdb']['port']              = int(params['influxdb']['port'])    
+    params["mqtt"]["port"]                  = int(params["mqtt"]["port"])   
     
     return params
 

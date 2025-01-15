@@ -1,12 +1,20 @@
 
 
+template:
+  - image: 
+      - name: Council 1 Tank Level
+        url: >
+          {% set input_value = states('sensor.garage_tank_percent') | float %}
+          {{ 'http://172.16.20.19:8123/local/TankLevels%04d.jpg' % (input_value*10//25*25) }}
+
+# or
     
 template:
   - image: 
       - name: Council 1 Tank Level
         url: >
           {% set input_value = states('sensor.council_1_percent') | float %}
-          {% if 0 < input_value < 2.5 %}
+          {% if 0 <= input_value < 2.5 %}
             http://172.16.10.21:8123/local/TankLevels0000.jpg
           {% elif 2.5 <= input_value < 5 %}
             http://172.16.10.21:8123/local/TankLevels0025.jpg

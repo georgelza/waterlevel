@@ -8,5 +8,6 @@ scp kpush.bsh pi@172.16.20.232:/app/waterlevels/
 scp krun.bsh pi@172.16.20.232:/app/waterlevels/
 scp requirements pi@172.16.20.232:/app/waterlevels/
 scp README.md pi@172.16.20.232:/app/waterlevels/
+scp kwaterservice.service pi@172.16.20.232:/app/waterlevels/waterservice.service
 scp k/* pi@172.16.20.232:/app/waterlevels/
 
