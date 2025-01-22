@@ -14,8 +14,8 @@
 #######################################################################################################################
 __author__      = "George Leonard"
 __email__       = "georgelza@gmail.com"
-__version__     = "0.0.1"
-__copyright__   = "Copyright 2024, George Leonard"
+__version__     = "1.0.1"
+__copyright__   = "Copyright 2025, George Leonard"
 
 
 #Libraries
@@ -24,6 +24,14 @@ import sys
 import RPi.GPIO as GPIO
 from datetime import datetime
 
+mqtt_codes = [
+    "Connection accepted",			
+    "Connection refused: Level of MQTT protocol not supported by server",			
+    "Connection refused: Client identifier not allowed by server.",		
+    "Connection refused: Network connection successful but MQTT service is unavailable.",				
+    "Connection refused: Data in username or password is malformed.",
+    "Connection refused: Client not authorized to connect."
+]
 
 ############# Instantiate a connection to the MQTT Server ##################
 def connect(config_params, logger):
@@ -39,26 +47,11 @@ def connect(config_params, logger):
     logger.info("#####################################################################")
     logger.info("")
     
-    logger.info('{time}, mqtt.connect - Creating connection to MQTT... '.format(
-        time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-    ))
-
-    logger.info('{time}, mqtt.connect - Broker     : {broker} '.format(
-        time   = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-        broker = broker
-    ))
-
-    logger.info('{time}, mqtt.connect - Port       : {port}'.format(
-        time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-        port = port
-    ))
-
-    logger.info('{time}, mqtt.connect - Client Tag : {clienttag} '.format(
-        time      = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-        clienttag = clienttag
+    logger.info('{time}, mqtt.connect - ch: {clienttag} Creating connection to MQTT... '.format(
+        time        = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
+        clienttag   = clienttag,
     ))
         
-
     try:
         
         mqtt.Client.connected_flag      = False                     # this creates the flag in the class
@@ -71,7 +64,13 @@ def connect(config_params, logger):
         client.username_pw_set(username, password)
         client.connect(broker, port)                                # connect
 
-
+        logger.info("{time}, mqtt.connect - Connection to MQTT Configured... Broker: {broker}, Port: {port}, Client: {clienttag}".format(
+            time        = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
+            broker      = broker,
+            port        = port,
+            clienttag   = clienttag,
+        ))
+    
     except Exception as err:
         logger.critical("{time}, mqtt.connect - Connection to MQTT Failed... {broker}, Port: {port}, Err: {err}".format(
             time   = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
@@ -80,28 +79,20 @@ def connect(config_params, logger):
             err    = err
         ))
 
-        logger.critical("")
-        logger.critical("#####################################################################")
-        logger.critical("")
-
         GPIO.cleanup()
-        sys.exit(1)
-    
-    finally:
         
-        logger.info("{time}, mqtt.connect - Connected to to MQTT Broker: {broker}, Port: {port}".format(
-            time   = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-            broker = broker,
-            port   = port
-        ))
+        client = 0
+        
+    finally:
 
-        logger.info("")
-        logger.info("#####################################################################")
-        logger.info("")
+        logger.debug("")
+        logger.debug("#####################################################################")
+        logger.debug("")
+
+        return client
         
     # end try
     
-    return client
 
 #end mqtt_connect
 
@@ -119,18 +110,22 @@ def publish(client, json_data, base_topic, logger):
 
         ret = client.publish(base_topic, json_data, 0)           # QoS = 0
 
+        logger.debug("{time}, mqtt.publish - MQTT Publish Completed: {ret}".format(
+            time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
+            ret  = ret,
+        ))  
+        
+        return ret
+    
     except Exception as err:
-        logger.critical('{time}, mqtt.publish - Publish Failed !!!: {err}'.format(
+        logger.critical('{time}, mqtt.publish - MQTT Publish Failed !!!: {err}'.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
             err  = err
         ))
     
-    finally:
-        logger.info("{time}, mqtt.publish - MQTT Publish returned: {ret}".format(
-            time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-            ret  = ret
-        ))    
-    
+        # Return 0
+        return 0
+        
     # end try
 #end publish
 
@@ -141,6 +136,10 @@ def close(client, logger):
 
         client.disconnect()
         
+        logger.debug('{time},  mqtt.close - Connection to MQTT Closed... '.format(
+            time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
+        ))
+        
     except Exception as err:
         logger.critical('{time}, mqtt.close - Connection Close to MQTT Failed... {err}'.format(
             time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
@@ -148,11 +147,6 @@ def close(client, logger):
         ))
 
         sys.exit(-1)
-
-    finally:    
-        logger.info('{time},  mqtt.close - Connection to MQTT Closed... '.format(
-            time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
-        ))
         
     # end try
 #end close

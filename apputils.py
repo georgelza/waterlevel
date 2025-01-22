@@ -14,8 +14,8 @@
 #######################################################################################################################
 __author__      = "George Leonard"
 __email__       = "georgelza@gmail.com"
-__version__     = "0.0.1"
-__copyright__   = "Copyright 2024, George Leonard"
+__version__     = "1.0.1"
+__copyright__   = "Copyright 2025, George Leonard"
 
 
 #Libraries
@@ -44,6 +44,7 @@ def get_config_params(configfile, descriptor=""):
     params['common']['file_loglevel']       = int(params['common']['file_loglevel'])
     params['common']['logfile']             = params['common']['logfile'].lower()
     params["common"]["channels"]            = params["common"]["channels"].split(",")
+    params['common']['stagger']             = int(params['common']['stagger'])
 
     # transducer_type
     #   Water Level   Thread fit Transducer_type  0.5 Bar = 0     water level/volume json package
@@ -61,14 +62,12 @@ def get_config_params(configfile, descriptor=""):
         params[chan]["sleep_seconds"]           = int(params[chan]["sleep_seconds"])
         params[chan]['max_pressure']            = int(params[chan]['max_pressure'])
         params[chan]["sensor_raw_value"]        = int(params[chan]["sensor_raw_max"])
-        params[chan]["sensor_raw_value"]        = int(params[chan]["sensor_raw_value"])
-        # params[chan]["database"]                = params[chan]["database"]
-        # params[chan]["tag"]                     = params[chan]["tag"]
-        # params[chan]["base_topic"]              = params[chan]["base_topic"]        
+        params[chan]["sensor_raw_value"]        = int(params[chan]["sensor_raw_value"])   
         params[chan]['logfile']                 = params[chan]['logfile'].lower()
         params[chan]['console_loglevel']        = int(params[chan]['console_loglevel'])
         params[chan]['file_loglevel']           = int(params[chan]['file_loglevel'])
-        params[chan]['adjust_value']            = int(params[chan]['adjust_value'])
+        params[chan]['neg_adjust_value']        = int(params[chan]['neg_adjust_value'])
+        params[chan]['pos_adjust_value']        = int(params[chan]['pos_adjust_value'])            
         params[chan]['samples']                 = int(params[chan]['samples'])
         params[chan]['max_samples']             = int(params[chan]['max_samples'])
         params[chan]['sample_sleep_seconds']    = int(params[chan]['sample_sleep_seconds'])
@@ -85,13 +84,11 @@ def get_config_params(configfile, descriptor=""):
             params[chan]["sleep_seconds"]           = int(params[chan]["sleep_seconds"])
             params[chan]["sensor_raw_max"]          = int(params[chan]["sensor_raw_max"])
             params[chan]["water_height_max_cm"]     = int(params[chan]["water_height_max_cm"])
-            # params[chan]["database"]                = params[chan]["database"]
-            # params[chan]["tag"]                     = params[chan]["tag"]
-            # params[chan]["base_topic"]              = params[chan]["base_topic"]
             params[chan]['logfile']                 = params[chan]['logfile'].lower()
             params[chan]['console_loglevel']        = int(params[chan]['console_loglevel'])
             params[chan]['file_loglevel']           = int(params[chan]['file_loglevel'])
-            params[chan]['adjust_value']            = int(params[chan]['adjust_value'])
+            params[chan]['neg_adjust_value']        = int(params[chan]['neg_adjust_value'])
+            params[chan]['pos_adjust_value']        = int(params[chan]['pos_adjust_value'])            
             params[chan]['samples']                 = int(params[chan]['samples'])
             params[chan]['max_samples']             = int(params[chan]['max_samples'])
             params[chan]['sample_sleep_seconds']    = int(params[chan]['sample_sleep_seconds'])
@@ -99,8 +96,12 @@ def get_config_params(configfile, descriptor=""):
             params[chan]['influxdb_enabled']        = int(params[chan]['influxdb_enabled'])
             
     params['influxdb']['port']              = int(params['influxdb']['port'])    
+    params['influxdb']['attempts']          = int(params['influxdb']['attempts'])    
+    params['influxdb']['backoff']           = int(params['influxdb']['backoff'])    
     params["mqtt"]["port"]                  = int(params["mqtt"]["port"])   
-    
+    params["mqtt"]["attempts"]              = int(params["mqtt"]["attempts"])   
+    params['mqtt']['backoff']               = int(params['mqtt']['backoff'])    
+
     return params
 
 # end def 
@@ -109,7 +110,7 @@ def get_config_params(configfile, descriptor=""):
 """
 Common Generic Logger setup, used by master loop for console and common file.
 """
-def advance_logger(filename, console_level = 1, file_level = 1):
+def advance_logger(logfile, console_loglevel, file_loglevel):
 
 
     my_logger = logging.getLogger(__name__)
@@ -121,23 +122,23 @@ def advance_logger(filename, console_level = 1, file_level = 1):
     ch = logging.StreamHandler()
     
     # Set file log level 
-    if console_level == 0:
+    if console_loglevel == 0:
         ch.setLevel(logging.DEBUG)
         cl = "debug"
 
-    elif console_level == 1:
+    elif console_loglevel == 1:
         ch.setLevel(logging.INFO)
         cl = "info"
         
-    elif console_level == 2:
+    elif console_loglevel == 2:
         ch.setLevel(logging.WARNING)
         cl = "warning"
         
-    elif console_level == 3:
+    elif console_loglevel == 3:
         ch.setLevel(logging.ERROR)
         cl = "error"
       
-    elif console_level == 4:
+    elif console_loglevel == 4:
         ch.setLevel(logging.CRITICAL)
         cl = "critical"
         
@@ -148,26 +149,26 @@ def advance_logger(filename, console_level = 1, file_level = 1):
     # Create a formatter
     #ff = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     ff = logging.Formatter('%(levelname)s - %(message)s')
-    fh = logging.FileHandler(filename)
+    fh = logging.FileHandler(logfile)
 
     # Set file log level 
-    if file_level == 0:
+    if file_loglevel == 0:
         fh.setLevel(logging.DEBUG)
         fl = "debug"
         
-    elif file_level == 1:
+    elif file_loglevel == 1:
         fh.setLevel(logging.INFO)
         fl = "info"
         
-    elif file_level == 2:
+    elif file_loglevel == 2:
         fh.setLevel(logging.WARNING)
         fl = "warning"
         
-    elif file_level == 3:
+    elif file_loglevel == 3:
         fh.setLevel(logging.ERROR)
         fl = "error"
         
-    elif file_level == 4:
+    elif file_loglevel == 4:
         fh.setLevel(logging.CRITICAL)
         fl = "critical"
         

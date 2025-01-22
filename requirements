@@ -1,4 +1,5 @@
 adafruit-circuitpython-mcp3xxx
 gpiozero
 influxdb
+influxdb_client
 paho-mqtt==1.6.1

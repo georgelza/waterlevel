@@ -6,7 +6,8 @@ After=multi-user.target
 Type=idle
 User=root
 Group=root
-ExecStart=/app/waterlevels/krun.bsh > 2>&1 > /app/waterlevels/waterservice.log
+#ExecStart=/app/waterlevels/krun.bsh > 2>&1 > /app/waterlevels/waterservice.log
+ExecStart=/app/waterlevels/krun.bsh > /dev/null 2>&1
 
 [Install]
 WantedBy=multi-user.target

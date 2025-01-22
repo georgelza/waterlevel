@@ -27,23 +27,43 @@ from adafruit_mcp3xxx.analog_in import AnalogIn
 from datetime import datetime
 
 
-def initialize(main_logger):
+def initialize(logger):
     
-    # create the spi bus
-    spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
-
-    # # create the cs (chip select)
-    cs = digitalio.DigitalInOut(board.D5)
-
-    # create the mcp object
-    mcp = MCP.MCP3008(spi, cs)
+    logger.debug("")
+    logger.debug("#####################################################################")
+    logger.debug("")
     
-    #mcp = Adafruit_MCP3008.MCP3008(spi=SPI.SpiDev(HW_SPI_PORT, HW_SPI_DEV)) 
-    
-    main_logger.debug("{time}, adc.initialize - ADC MCP3008 initialized: ".format(
+    logger.info('{time}, adc.initialize - Creating connection to ADC MCP3008... '.format(
         time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
     ))
+        
+    try:
+            
+        # create the spi bus
+        spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
 
+        # # create the cs (chip select)
+        cs = digitalio.DigitalInOut(board.D5)
+
+        # create the mcp object
+        mcp = MCP.MCP3008(spi, cs)
+        logger.info("{time}, adc.initialize - ADC MCP3008 Configured... ".format(
+            time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
+        ))
+        
+    except Exception as err:
+        logger.critical("{time}, adc.initialize - ADC MCP3008 Failed...  Err: {err}".format(
+            time   = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")),
+            err    = err
+        ))
+    
+    finally:
+
+        logger.debug("")
+        logger.debug("#####################################################################")
+        logger.debug("")
+        
+    # end try
     return mcp
             
 # end initialize

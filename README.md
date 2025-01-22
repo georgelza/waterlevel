@@ -116,3 +116,17 @@ https://www.youtube.com/watch?v=oda_jsSYqR4
 
 https://github.com/leon-anavi/rpi-examples/tree/master/MCP3002/python
 
+
+
+## Configuraing Auto Start of Service.
+
+
+  cp waterservice.service /lib/systemd/system
+
+  systemctl enable waterservice.service
+  systemctl start waterservice.service
+  systemctl status waterservice.service
+
+  systemctl daemon-reload
+
+ * * * * * /app/waterlevels/run.bsh >> /app/waterlevels/WaterTanks.log
